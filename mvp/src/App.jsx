@@ -1,100 +1,64 @@
-// src/App.jsx
-import React, { useState } from 'react';
-import { Home as HomeIcon, PlusCircle, User, LogOut } from 'lucide-react';
-import Home from './screens/Home/Home';
-import Auth from './screens/AuthenticationWorkflow/Auth';
-import OrdersWorkflow from './screens/OrdersWorkflow/OrdersWorkflow';
-import styles from './screens/Home/Dashboard.module.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './links/Login';
+import Home from './links/Home';
+import CreateSeller from './links/CreateSeller';
+import CreateStore from './links/CreateStore';
+import AllOrders from './links/AllOrders';
+import NewOrders from './links/NewOrders';
+import OrderDetail from './links/OrderDetail'; 
+import ProductOrderedDetail from './links/ProductOrderedDetail';
+import OrderSummary from './links/OrderSummary';
+import CreateListing from './links/CreateListing';
+import Listings from './links/Listings';
+import ListingDetail from './links/ListingDetail';
+import AccountSettings from './links/AccountSettings';
+import EditAccountSettings from './links/EditAccountSettings';
+import EditListing from './links/EditListing';
+import StoreFront from './links/StoreFront';
+import Product from './links/Product';
+import Cart from './links/Cart';
+import OrderSuccess from './links/OrderSuccess';
+import './App.css';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState('home');
-  // 1. Add state to track which order was clicked
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
-
-  // 2. Create a unified navigation handler
-  const handleNavigate = (tab, orderId = null) => {
-    setActiveTab(tab);
-    setSelectedOrderId(orderId);
-  };
-
-  if (!isAuthenticated) {
-    return <Auth onLogin={() => setIsAuthenticated(true)} />;
-  }
-
+const App = () => {
   return (
-    <div className={styles.layout}>
+    <Router>
+      <Routes>
+        {/* Core Auth & Flow Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/create-seller" element={<CreateSeller />} />
+        <Route path="/create-store" element={<CreateStore />} />
+        <Route path="/home" element={<Home />} />
 
-      {activeTab === 'home' && <Home onNavigate={handleNavigate} />}
-      
-      {/* 4. Pass the selectedOrderId into the Orders component */}
-      {activeTab === 'orders' && (
-        <OrdersWorkflow 
-          initialOrderId={selectedOrderId} 
-          onBackToHome={() => handleNavigate('home')} 
-        />
-      )}
-      
-      {activeTab === 'add' && (
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
-          <h2>Add a Listing</h2>
-          <p>This module will go here.</p>
-        </div>
-      )}
-      
-      {activeTab === 'profile' && (
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2>Profile Settings</h2>
-          <button 
-            onClick={() => setIsAuthenticated(false)}
-            style={{
-              marginTop: '2rem',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            <LogOut size={18} />
-            Log Out
-          </button>
-        </div>
-      )}
+        {/* NavBar links */}
+        <Route path="/create-listing" element={<CreateListing />} />
+        <Route path="/profile" element={<AccountSettings />} />
+        <Route path="/profile/edit" element={<EditAccountSettings />} />
+        
+        {/* Order Flows */}
+        <Route path="/new-orders" element={<NewOrders />} />
+        <Route path="/all-orders" element={<AllOrders />} />
+        <Route path="/order/:id" element={<OrderDetail />} />
+        <Route path="/order/:orderId/summary" element={<OrderSummary />} />
+        <Route path="/order/:orderId/product/:productId" element={<ProductOrderedDetail />} />
+        
+        {/* Listing Flows */}
+        <Route path="/listings" element={<Listings />} />
+        <Route path="/listing/:id" element={<ListingDetail />} />
+        <Route path="/edit-listing/:id" element={<EditListing />} />
 
-      {/* Bottom Navigation */}
-      <nav className={styles.bottomNav}>
-        <button 
-          className={`${styles.navItem} ${['home', 'orders'].includes(activeTab) ? styles.navItemActive : ''}`}
-          onClick={() => handleNavigate('home')}
-        >
-          <HomeIcon size={24} />
-          <span>Home</span>
-        </button>
+        {/* Buyer Flows */}
+        <Route path="/storefront" element={<StoreFront />} />
+        <Route path="/product/:id" element={<Product />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
         
-        <button 
-          className={`${styles.navItem} ${activeTab === 'add' ? styles.navItemActive : ''}`}
-          onClick={() => handleNavigate('add')}
-        >
-          <PlusCircle size={24} />
-          <span>Add</span>
-        </button>
-        
-        <button 
-          className={`${styles.navItem} ${activeTab === 'profile' ? styles.navItemActive : ''}`}
-          onClick={() => handleNavigate('profile')}
-        >
-          <User size={24} />
-          <span>Profile</span>
-        </button>
-      </nav>
-    </div>
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

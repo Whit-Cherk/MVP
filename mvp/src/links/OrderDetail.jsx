@@ -1,0 +1,149 @@
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { MOCK_ORDERS } from '../data/MockData';
+import OrderDetailPage from '../components/pages/OrderDetailPage';
+import NavBar from '../components/NavBar'
+
+const OrderDetail = () => {
+  const { id } = useParams();
+  // Explicitly parse the string ID from the URL into a base-10 integer
+  const numericId = parseInt(id, 10);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Now comparing against the integer version
+  const foundOrder = MOCK_ORDERS.find((o) => o.id === numericId);
+
+  const mapStatus = (mockStatus) => {
+    if (mockStatus === 'Completed') return 'completed';
+    if (mockStatus === 'In Progress') return 'send_by';
+    if (mockStatus === 'New') return 'new';
+    return 'pending'; 
+  };
+
+  const [order, setOrder] = useState(() => {
+    if (foundOrder) {
+      return {
+        id: foundOrder.id,
+        status: mapStatus(foundOrder.status),
+        dateOrdered: foundOrder.dateOrdered,
+        dateAction: foundOrder.completedDate || foundOrder.sendByDate, 
+        total: foundOrder.price,
+        buyer: foundOrder.buyer,
+        products: foundOrder.products
+      };
+    }
+    
+    return {
+      // Fallback to the numeric ID here as well
+      id: numericId || 'Unknown',
+      status: 'pending', 
+      dateOrdered: 'N/A',
+      dateAction: 'N/A', 
+      total: '$0.00',
+      buyer: { name: 'Unknown Buyer', phone: '', address: '' },
+      products: []
+    };
+  });
+
+  const handleStatusChange = (e) => {
+    const newStatus = e.target.value;
+    
+    if (newStatus === 'completed') {
+      setShowConfirmModal(true);
+    } else {
+      setOrder({ ...order, status: newStatus });
+    }
+  };
+
+  const confirmCompletion = () => {
+    setOrder({ ...order, status: 'completed' });
+    setShowConfirmModal(false);
+  };
+
+  const cancelCompletion = () => {
+    setShowConfirmModal(false);
+  };
+
+  return (
+    <>
+      <OrderDetailPage 
+        orderId={order.id} 
+        status={order.status}
+        dateAction={order.dateAction}
+        dateOrdered={order.dateOrdered}
+        total={order.total}
+        buyer={order.buyer}
+        products={order.products}
+        onStatusChange={handleStatusChange}
+      />
+
+      {showConfirmModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1.5rem'
+        }}>
+          <div style={{
+            backgroundColor: 'var(--surface-color)',
+            padding: '2rem',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '400px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: '700', 
+              color: 'var(--text-main)', 
+              margin: 0 
+            }}>
+              Confirm Completion
+            </h3>
+            <p style={{ 
+              color: 'var(--text-secondary)', 
+              margin: 0, 
+              fontSize: '1rem' 
+            }}>
+              Are you sure you want to mark this order as completed?
+            </p>
+            <div style={{ 
+              display: 'flex', 
+              gap: '1rem', 
+              marginTop: '0.5rem' 
+            }}>
+              <button
+                className="action-button"
+                style={{ backgroundColor: '#f1f5f9', color: 'var(--text-main)' }}
+                onClick={cancelCompletion}
+              >
+                Cancel
+              </button>
+              <button
+                className="action-button"
+                onClick={confirmCompletion}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <NavBar/>
+    </>
+  );
+};
+
+export default OrderDetail;

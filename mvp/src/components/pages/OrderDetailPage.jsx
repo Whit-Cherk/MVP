@@ -1,0 +1,143 @@
+import React, { useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import HeaderText from '../HeaderText';
+import DetailsLine from '../DetailsLine';
+import HorizontalCardLeft from '../HorizontalCardLeft';
+import Dropdown from '../Dropdown';
+import BuyerInfo from '../BuyerInfo';
+import BackButton from '../BackButton';
+
+// formatDisplayDate is now a pure helper function without any hooks
+const formatDisplayDate = (dateString) => {
+  if (!dateString) return null;
+  const [year, month, day] = dateString.split('-');
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  return `${months[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year}`; 
+};
+
+// Helper to calculate a single product's total price including customizations
+const calculateProductPrice = (product) => {
+  if (!product || !product.price) return 0;
+  const basePrice = parseFloat(product.price.replace('$', '')) || 0;
+  const customizationsPrice = product.customizations?.reduce((sum, cust) => {
+    return sum + (parseFloat(cust.price.replace('$', '')) || 0);
+  }, 0) || 0;
+  
+  return basePrice + customizationsPrice;
+};
+
+// Helper to calculate the grand total for the array of products
+const calculateOrderPrice = (products) => {
+  if (!products || !Array.isArray(products)) return '$0.00';
+  const total = products.reduce((sum, product) => {
+    return sum + calculateProductPrice(product);
+  }, 0) || 0;
+  
+  return `$${total.toFixed(2)}`;
+};
+
+const OrderDetailPage = ({ 
+  orderId, 
+  status, 
+  dateAction, 
+  dateOrdered, 
+  total,
+  buyer, 
+  products,
+  onStatusChange
+}) => {
+  const navigate = useNavigate();
+
+  // The hook must be at the top level of your component
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const renderDynamicStatusHeader = () => {
+    switch (status) {
+      case 'completed':
+        return <h1 className="dynamic-status-header status-completed">Completed on {formatDisplayDate(dateAction)}</h1>;
+      case 'pending':
+        return <h1 className="dynamic-status-header status-send">Pending</h1>;
+      case 'send_by':
+        return <h1 className="dynamic-status-header status-send">Send by {dateAction}</h1>;
+      case 'new':
+        return <h1 className="dynamic-status-header status-new">New Order</h1>;
+      default:
+        return <h1 className="dynamic-status-header">Order Status</h1>;
+    }
+  };
+
+  const formatCustomizations = (customizations) => {
+    if (!customizations || !Array.isArray(customizations)) return '';
+    return customizations
+      .map(cust => `${cust.category}: ${cust.option}`)
+      .join(', ');
+  };
+
+  const calculatedTotal = calculateOrderPrice(products);
+
+  return (
+    <div className="order-detail-layout">
+      <BackButton />
+
+      {renderDynamicStatusHeader()}
+
+      <div className="divider"></div>
+
+      <div className="order-meta-row">
+        <DetailsLine items={[`Ordered on ${formatDisplayDate(dateOrdered)}`, calculatedTotal]} />
+        <Dropdown 
+          value={status}
+          onChange={onStatusChange}
+          options={[
+            { label: 'New Order', value: 'new' },
+            { label: 'Pending', value: 'pending' },
+            { label: 'In Progress', value: 'send_by' },
+            { label: 'Completed', value: 'completed' },
+          ]}
+        />
+      </div>
+
+      <BuyerInfo 
+        name={buyer.name} 
+        phone={buyer.phone} 
+        address={buyer.address} 
+      />
+
+      <div className="summary-button-container">
+        <button 
+          className="secondary-action-btn"
+          onClick={() => navigate(`/order/${orderId}/summary`)}
+        >
+          Generar Recibo de Orden
+        </button>
+      </div>
+
+      <div className="divider"></div>
+
+      <h3 className="items-header">{products.length} {products.length == 1 ? 'item' : 'items'}</h3>
+      
+      <div className="items-list">
+        {products.map((product) => (
+            <div 
+              key={product.id} 
+              onClick={() => navigate(`/order/${orderId}/product/${product.id}`)}
+              style={{ cursor: 'pointer' }}
+            >
+              <HorizontalCardLeft 
+                imageSrc={product.image}
+                title={product.name}
+                subtitle={formatCustomizations(product.customizations)}
+                status={`$${calculateProductPrice(product).toFixed(2)}`}
+              />
+            </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default OrderDetailPage;
