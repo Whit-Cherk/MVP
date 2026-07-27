@@ -4,6 +4,7 @@ Copia cada archivo de este zip a la misma ruta relativa dentro de tu proyecto
 `mvp/`, sobrescribiendo los que ya existan.
 
 ## Archivos nuevos
+
 - `src/supabaseClient.js`
 - `src/context/AuthContext.jsx`
 - `src/components/ProtectedRoute.jsx`
@@ -12,6 +13,7 @@ Copia cada archivo de este zip a la misma ruta relativa dentro de tu proyecto
 - `.env.example`
 
 ## Archivos modificados
+
 - `package.json` — se agregó `@supabase/supabase-js` a las dependencias.
 - `src/App.jsx` — envuelto en `<AuthProvider>`, rutas de vendedor
   protegidas con `<ProtectedRoute>`. Las rutas de storefront/producto/
